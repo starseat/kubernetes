@@ -121,6 +121,19 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 ```
 
+확인시 다음 오류 났을때 대처 방법
+```bash
+$ sysctl -p
+sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-ip6tables: 그런 파일이나 디렉터리가 없습니다
+sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-iptables: 그런 파일이나 디렉터리가 없습니다
+
+$ modprobe br_netfilter
+$ lsmod | grep br_netfilter
+$ sysctl -p
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+```
+
 4. 리눅스 swap 설정 해제
 
 ```bash
@@ -186,8 +199,16 @@ $ yum install docker-ce -y
 $ systemctl start docker
 
 # docker 실행 확인
-$ systemctl status docker
-● docker.service - Docker Application Container Engine   Loaded: loaded (/usr/lib/systemd/system/docker.service; enabled; vendor preset: disabled)   Active: active (running) since 월 2021-06-07 08:16:34 KST; 5h 47min ago     Docs: https://docs.docker.com Main PID: 1134 (dockerd)    Tasks: 20   Memory: 165.6M   CGroup: /system.slice/docker.service           └─1134 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+systemctl status docker
+● docker.service - Docker Application Container Engine
+   Loaded: loaded (/usr/lib/systemd/system/docker.service; disabled; vendor preset: disabled)
+   Active: active (running) since 금 2021-07-09 09:47:19 KST; 5s ago
+     Docs: https://docs.docker.com
+ Main PID: 5253 (dockerd)
+    Tasks: 13
+   Memory: 44.7M
+   CGroup: /system.slice/docker.service
+           └─5253 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
 
 # 부팅시 Docker 자동 실행 설정 
 $ systemctl enable docker
@@ -299,7 +320,31 @@ $ kubeadm join control-plain 노드 IP:6443 --token q2l6jr.wev7kir18mr2kv32 \	--
 $ kubectl get nodes	NAME           STATUS   ROLES                  AGE     VERSION  k8s-master     Ready    control-plane,master   3d21h   v1.21.1  k8s-worker-1   Ready    <none>                 3d20h   v1.21.1
 ```
 
+## kubectl 설치
 
+1. 랜쳐 접속 > Cluster 탭으로 이동
+2. `Kubeconfig File` 버튼 클릭
+3. `mkdir ~/.kube/`
+4. `vi config`
+5. 팝업에 나타난 내용 복사 후 `config` 파일에 붙여넣기
+6. `download` 클릭 (https://kubernetes.io/docs/tasks/tools/) > `Install kubectl on Linux` 클릭
+7. 메뉴얼 대로 설정
+```bash
+# 1. Download the latest release with the command:
+$ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+# 2. Validate the binary (optional)
+# 2.1. Download the kubectl checksum file:
+$ curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+# 2.2. Validate the kubectl binary against the checksum file:
+$ echo "$(<kubectl.sha256) kubectl" | sha256sum --check
+
+# 3. Install kubectl
+$ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+# 4. Test to ensure the version you installed is up-to-date:
+$ kubectl version --client
+```
 
 ## 옵션 및 Tip
 
